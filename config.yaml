@@ -1,5 +1,5 @@
 llm:
-  model: "gpt-4o-mini"
+  model: "gpt-4.1-mini"
   base_url: "https://api.openai.com/v1"
   api_key: ""        # or set LLM_API_KEY env var
 
