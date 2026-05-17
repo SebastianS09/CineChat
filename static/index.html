@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineChat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d0d14;
+            --surface: #16161f;
+            --surface2: #1e1e2a;
+            --border: rgba(255,255,255,0.07);
+            --gold: #f5c842;
+            --gold-dim: #a8893a;
+            --text: #e8e8f0;
+            --text-dim: #8888aa;
+            --red: #e05252;
+            --green: #52c07a;
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Header ── */
+        header {
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--surface);
+        }
+        header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+        header .subtitle {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            margin-left: auto;
+        }
+
+        /* ── Layout ── */
+        .layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            flex: 1;
+            overflow: hidden;
+        }
+        @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+        /* ── Left panel ── */
+        .left-panel {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px;
+            gap: 16px;
+            overflow-y: auto;
+        }
+
+        /* Orb */
+        .orb-wrap {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+        .orb {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #3a3a60, #0d0d22);
+            box-shadow: 0 0 0 2px var(--border), 0 0 40px rgba(245,200,66,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            transition: box-shadow 0.3s ease;
+        }
+        .orb.speaking {
+            box-shadow: 0 0 0 3px var(--gold-dim), 0 0 60px rgba(245,200,66,0.25);
+            animation: orb-pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes orb-pulse {
+            0%, 100% { box-shadow: 0 0 0 3px var(--gold-dim), 0 0 60px rgba(245,200,66,0.25); }
+            50% { box-shadow: 0 0 0 6px var(--gold-dim), 0 0 80px rgba(245,200,66,0.35); }
+        }
+
+        /* Waveform */
+        .waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            height: 24px;
+            width: 100%;
+        }
+        .waveform .bar {
+            width: 3px;
+            background: var(--gold);
+            border-radius: 3px;
+            height: 3px;
+            opacity: 0.6;
+            transition: height 0.06s ease-out;
+        }
+
+        /* Mic button */
+        .mic-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 2px solid var(--gold-dim);
+            background: transparent;
+            color: var(--gold);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .mic-btn:hover { background: rgba(245,200,66,0.1); border-color: var(--gold); }
+        .mic-btn:disabled { border-color: var(--border); color: var(--text-dim); cursor: not-allowed; }
+        .mic-btn.active {
+            background: var(--gold);
+            color: var(--bg);
+            border-color: var(--gold);
+            animation: mic-pulse 2s ease-in-out infinite;
+        }
+        @keyframes mic-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245,200,66,0.3); }
+            50% { box-shadow: 0 0 0 10px rgba(245,200,66,0); }
+        }
+
+        .status-text { font-size: 0.75rem; color: var(--text-dim); }
+
+        /* Controls */
+        .ctrl-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ctrl-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        .lang-selector { display: flex; gap: 4px; flex-wrap: wrap; }
+        .lang-btn {
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-dim);
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .lang-btn:hover { border-color: var(--gold-dim); color: var(--text); }
+        .lang-btn.selected { background: var(--gold); border-color: var(--gold); color: var(--bg); }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .toggle-row input { cursor: pointer; accent-color: var(--gold); }
+        .toggle-row label { font-size: 0.72rem; color: var(--text-dim); cursor: pointer; }
+
+        /* Transcript */
+        .transcript-area {
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .transcript-area .msg {
+            font-size: 0.8rem;
+            line-height: 1.5;
+            padding: 8px 10px;
+            border-radius: 8px;
+        }
+        .transcript-area .msg.user {
+            background: rgba(82, 130, 224, 0.1);
+            border: 1px solid rgba(82, 130, 224, 0.2);
+            color: #8ab4f8;
+            align-self: flex-end;
+            max-width: 90%;
+        }
+        .transcript-area .msg.agent {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            align-self: flex-start;
+            max-width: 90%;
+        }
+        .transcript-area .msg .label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.5;
+            margin-bottom: 2px;
+        }
+
+        /* ── Right panel: movies ── */
+        .movies-panel {
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .panel-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            color: var(--gold);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .movies-empty {
+            color: var(--text-dim);
+            text-align: center;
+            padding: 80px 20px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .movies-empty .icon { font-size: 2.5rem; margin-bottom: 12px; display: block; }
+
+        .movies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .movie-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .movie-card:hover { border-color: var(--gold-dim); transform: translateY(-2px); }
+
+        .movie-card-body { padding: 14px; }
+
+        .movie-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+        .movie-meta {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .movie-genres {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        .genre-tag {
+            font-size: 0.65rem;
+            padding: 2px 7px;
+            border-radius: 4px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+        .movie-rating {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            margin-bottom: 10px;
+        }
+        .star { color: var(--gold); }
+        .rating-val { font-weight: 700; color: var(--gold); }
+        .rating-source { color: var(--text-dim); font-size: 0.7rem; }
+
+        .movie-screenings { border-top: 1px solid var(--border); padding-top: 10px; }
+        .screenings-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+        }
+        .screening-item {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+        .screening-theater { color: var(--text); font-weight: 500; }
+        .screening-badge {
+            display: inline-block;
+            font-size: 0.6rem;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-weight: 700;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+        .badge-vo { background: rgba(82, 192, 122, 0.15); color: var(--green); border: 1px solid rgba(82,192,122,0.3); }
+        .badge-vf { background: rgba(82,130,224,0.15); color: #8ab4f8; border: 1px solid rgba(82,130,224,0.3); }
+        .badge-3d { background: rgba(224,82,82,0.15); color: var(--red); border: 1px solid rgba(224,82,82,0.3); }
+
+        .more-screenings {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        /* ── Location bar ── */
+        .location-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .location-input-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 160px;
+        }
+        .location-input {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 10px 7px 30px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .location-input:focus { border-color: var(--gold-dim); }
+        .location-input::placeholder { color: var(--text-dim); }
+        .location-input-icon {
+            position: absolute;
+            left: 9px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.85rem;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .walk-select {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 8px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.15s;
+            flex-shrink: 0;
+        }
+        .walk-select:focus { border-color: var(--gold-dim); }
+        .location-set-btn {
+            background: var(--gold);
+            color: var(--bg);
+            border: none;
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: opacity 0.15s;
+        }
+        .location-set-btn:hover { opacity: 0.85; }
+        .location-set-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .location-status {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            width: 100%;
+            min-height: 16px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .location-status.ok   { color: var(--green); }
+        .location-status.err  { color: var(--red); }
+        .location-status.spin::before {
+            content: '';
+            width: 10px; height: 10px;
+            border: 2px solid var(--text-dim);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            display: inline-block;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Autocomplete dropdown */
+        .autocomplete-list {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0; right: 0;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 100;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+        .autocomplete-item {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+        .autocomplete-item:hover, .autocomplete-item.active { background: var(--surface); }
+        .autocomplete-item .ac-main { font-weight: 500; }
+        .autocomplete-item .ac-sub  { font-size: 0.7rem; color: var(--text-dim); }
+
+        /* ── Filter bar ── */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 28px;
+            margin-bottom: 16px;
+        }
+        .filter-bar-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px 3px 8px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            border: 1px solid;
+            animation: chip-in 0.2s ease;
+        }
+        @keyframes chip-in {
+            from { opacity: 0; transform: scale(0.85); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+        .filter-chip.time  { background: rgba(245,200,66,0.1);  border-color: rgba(245,200,66,0.35); color: var(--gold); }
+        .filter-chip.place { background: rgba(82,130,224,0.1);  border-color: rgba(82,130,224,0.35); color: #8ab4f8; }
+        .filter-chip.genre { background: rgba(82,192,122,0.1);  border-color: rgba(82,192,122,0.35); color: var(--green); }
+        .filter-chip .chip-icon { font-size: 0.75rem; }
+
+        .filter-count {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            margin-left: auto;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        .filter-count strong { color: var(--text); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+    </style>
+</head>
+<body>
+    <header>
+        <span style="font-size:1.4rem">🎬</span>
+        <h1>CineChat</h1>
+        <span class="subtitle">Your voice cinema guide</span>
+    </header>
+
+    <div class="layout">
+        <!-- Left: Agent controls -->
+        <div class="left-panel">
+            <div class="orb-wrap">
+                <div class="orb" id="orb">🎬</div>
+            </div>
+
+            <div class="waveform" id="waveform"></div>
+
+            <button class="mic-btn" id="micBtn" title="Start session">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                    <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+            </button>
+            <div class="status-text" id="statusText">Tap to start</div>
+
+            <div class="ctrl-section">
+                <div class="ctrl-label">Language</div>
+                <div class="lang-selector" id="langSelector">
+                    <button class="lang-btn selected" data-lang="en">EN</button>
+                    <button class="lang-btn" data-lang="fr">FR</button>
+                    <button class="lang-btn" data-lang="de">DE</button>
+                    <button class="lang-btn" data-lang="es">ES</button>
+                    <button class="lang-btn" data-lang="pt">PT</button>
+                </div>
+            </div>
+
+            <div class="ctrl-section">
+                <label class="toggle-row">
+                    <input type="checkbox" id="echoCancellation" checked>
+                    <span class="ctrl-label" style="text-transform:none;letter-spacing:0">Echo cancellation</span>
+                </label>
+                <label class="toggle-row">
+                    <input type="checkbox" id="showTranscript" checked>
+                    <span class="ctrl-label" style="text-transform:none;letter-spacing:0">Show transcript</span>
+                </label>
+            </div>
+
+            <div class="transcript-area" id="transcriptArea"></div>
+        </div>
+
+        <!-- Right: Movies -->
+        <div class="movies-panel">
+            <div class="panel-title">
+                <span>🎞</span> Now Playing
+            </div>
+
+            <!-- Location bar -->
+            <div class="location-bar" id="locationBar">
+                <div class="location-input-wrap" id="locationInputWrap">
+                    <span class="location-input-icon">📍</span>
+                    <input type="text" class="location-input" id="locationInput"
+                           placeholder="Address or neighbourhood…" autocomplete="off">
+                    <div class="autocomplete-list" id="autocompleteList" style="display:none"></div>
+                </div>
+                <select class="walk-select" id="walkSelect" title="Walking time">
+                    <option value="5">5 min</option>
+                    <option value="10" selected>10 min</option>
+                    <option value="15">15 min</option>
+                    <option value="20">20 min</option>
+                    <option value="30">30 min</option>
+                    <option value="45">45 min</option>
+                    <option value="custom">Custom…</option>
+                </select>
+                <button class="location-set-btn" id="locationSetBtn">Set</button>
+                <div class="location-status" id="locationStatus"></div>
+            </div>
+
+            <div class="filter-bar" id="filterBar" style="display:none"></div>
+            <div id="moviesContent">
+                <div class="movies-empty">
+                    <span class="icon">🎙️</span>
+                    Tap the mic and tell CineChat where you are.<br>
+                    It will find what's playing near you.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="static/js/opus-encoder.js"></script>
+    <script src="static/js/audio-processor.js"></script>
+    <script src="static/js/synced-audio-player.js"></script>
+    <script>fetch("api/audio-config").then(r=>r.json()).then(c=>{window.__pcmOutput=c.pcm})</script>
+    <script>
+    // ── DOM ──
+    const orb = document.getElementById('orb');
+    const micBtn = document.getElementById('micBtn');
+    const statusText = document.getElementById('statusText');
+    const moviesContent = document.getElementById('moviesContent');
+    const filterBar = document.getElementById('filterBar');
+    const transcriptArea = document.getElementById('transcriptArea');
+    const waveformEl = document.getElementById('waveform');
+    const showTranscriptToggle = document.getElementById('showTranscript');
+    const echoCancellationToggle = document.getElementById('echoCancellation');
+
+    showTranscriptToggle.addEventListener('change', () => {
+        transcriptArea.style.display = showTranscriptToggle.checked ? '' : 'none';
+    });
+
+    // Waveform bars
+    const NUM_BARS = 24;
+    const bars = [];
+    for (let i = 0; i < NUM_BARS; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        waveformEl.appendChild(bar);
+        bars.push(bar);
+    }
+
+    // ── Location bar ──
+    const locationInput  = document.getElementById('locationInput');
+    const walkSelect     = document.getElementById('walkSelect');
+    const locationSetBtn = document.getElementById('locationSetBtn');
+    const locationStatus = document.getElementById('locationStatus');
+    const autocompleteList = document.getElementById('autocompleteList');
+
+    let geocodingAvailable = false;
+    let pendingLocation = null;   // { lat, lng, formatted_address } from last geocode
+    let acDebounce = null;
+
+    fetch('api/location-config').then(r => r.json()).then(c => {
+        geocodingAvailable = c.geocoding_available;
+        if (!geocodingAvailable) {
+            locationInput.placeholder = 'Geocoding not configured';
+            locationInput.disabled = true;
+            locationSetBtn.disabled = true;
+        }
+    }).catch(() => {});
+
+    function setLocationStatus(msg, cls) {
+        locationStatus.textContent = msg;
+        locationStatus.className = 'location-status' + (cls ? ' ' + cls : '');
+    }
+
+    // Debounced autocomplete via /api/geocode
+    locationInput.addEventListener('input', () => {
+        const q = locationInput.value.trim();
+        pendingLocation = null;
+        clearTimeout(acDebounce);
+        autocompleteList.style.display = 'none';
+        if (q.length < 3) return;
+        acDebounce = setTimeout(() => runAutocomplete(q), 350);
+    });
+
+    locationInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); handleSetLocation(); }
+        if (e.key === 'Escape') autocompleteList.style.display = 'none';
+        if (e.key === 'ArrowDown') { e.preventDefault(); moveAcSelection(1); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); moveAcSelection(-1); }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#locationInputWrap')) autocompleteList.style.display = 'none';
+    });
+
+    async function runAutocomplete(q) {
+        try {
+            const resp = await fetch(`api/geocode?q=${encodeURIComponent(q)}`);
+            if (!resp.ok) { autocompleteList.style.display = 'none'; return; }
+            const data = await resp.json();
+            // Single result from Geocoding API — show it as the only suggestion
+            autocompleteList.innerHTML = '';
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            const parts = data.formatted_address.split(',');
+            item.innerHTML = `<div class="ac-main">${parts[0]}</div><div class="ac-sub">${parts.slice(1).join(',').trim()}</div>`;
+            item.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                selectAcResult(data);
+            });
+            autocompleteList.appendChild(item);
+            autocompleteList.style.display = 'block';
+            // Pre-cache this result
+            pendingLocation = data;
+        } catch { autocompleteList.style.display = 'none'; }
+    }
+
+    function moveAcSelection(dir) {
+        const items = [...autocompleteList.querySelectorAll('.autocomplete-item')];
+        if (!items.length) return;
+        const cur = autocompleteList.querySelector('.autocomplete-item.active');
+        let idx = items.indexOf(cur) + dir;
+        idx = Math.max(0, Math.min(items.length - 1, idx));
+        items.forEach(i => i.classList.remove('active'));
+        items[idx].classList.add('active');
+    }
+
+    function selectAcResult(data) {
+        pendingLocation = data;
+        locationInput.value = data.formatted_address;
+        autocompleteList.style.display = 'none';
+    }
+
+    // Walk time — "Custom…" option
+    walkSelect.addEventListener('change', () => {
+        if (walkSelect.value === 'custom') {
+            const v = prompt('Walking time in minutes (1–60):');
+            const n = parseInt(v);
+            if (n >= 1 && n <= 60) {
+                const opt = document.createElement('option');
+                opt.value = String(n);
+                opt.textContent = `${n} min`;
+                opt.selected = true;
+                walkSelect.insertBefore(opt, walkSelect.lastElementChild);
+                walkSelect.value = String(n);
+            } else {
+                walkSelect.value = '10';
+            }
+        }
+    });
+
+    async function handleSetLocation() {
+        const q = locationInput.value.trim();
+        if (!q) return;
+
+        locationSetBtn.disabled = true;
+        setLocationStatus('', 'spin');
+
+        try {
+            // Use cached result if the input matches, otherwise geocode fresh
+            let geo = pendingLocation && pendingLocation.formatted_address === q ? pendingLocation : null;
+            if (!geo) {
+                const resp = await fetch(`api/geocode?q=${encodeURIComponent(q)}`);
+                if (!resp.ok) { setLocationStatus('Address not found', 'err'); return; }
+                geo = await resp.json();
+            }
+
+            const walkMin = walkSelect.value === 'custom' ? 10 : parseFloat(walkSelect.value);
+            const rangeKm = walkMin * (4 / 60);
+
+            // Update the input to the resolved address
+            locationInput.value = geo.formatted_address;
+            pendingLocation = geo;
+            autocompleteList.style.display = 'none';
+
+            setLocationStatus(`📍 ${geo.formatted_address} · ${walkMin} min walk (${rangeKm.toFixed(1)} km)`, 'ok');
+
+            // If a session is active, send as a config update (handled by on_config)
+            if (isRunning && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'config',
+                    set_location: {
+                        latitude: geo.lat,
+                        longitude: geo.lng,
+                        walk_minutes: walkMin,
+                        label: geo.formatted_address,
+                    },
+                }));
+            }
+        } catch (err) {
+            setLocationStatus('Error — try again', 'err');
+            console.error(err);
+        } finally {
+            locationSetBtn.disabled = false;
+        }
+    }
+
+    locationSetBtn.addEventListener('click', handleSetLocation);
+
+    // ── Language ──
+    let selectedLang = 'en';
+    document.getElementById('langSelector').addEventListener('click', (e) => {
+        const btn = e.target.closest('.lang-btn');
+        if (!btn) return;
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedLang = btn.dataset.lang;
+        if (!isRunning) statusText.textContent = 'Tap to start';
+    });
+
+    // ── State ──
+    let ws = null, player = null, isRunning = false;
+    let analyserRef = null, rafId = null;
+    let turnBubbles = {}, userBubble = null, hadAgentBubble = false;
+    let _turnSeq = 0; // fallback key when turnIdx is null/undefined
+
+    // ── Animation loop ──
+    function animLoop() {
+        if (analyserRef) {
+            const data = new Uint8Array(analyserRef.frequencyBinCount);
+            analyserRef.getByteFrequencyData(data);
+            const step = Math.floor(data.length / NUM_BARS);
+            const hasSignal = data.some(v => v > 10);
+            if (hasSignal) orb.classList.add('speaking'); else orb.classList.remove('speaking');
+            for (let i = 0; i < NUM_BARS; i++) {
+                const val = data[i * step] / 255;
+                bars[i].style.height = Math.max(3, val * 20) + 'px';
+            }
+        }
+        rafId = requestAnimationFrame(animLoop);
+    }
+
+    // ── Session ──
+    async function toggleSession() {
+        if (isRunning) { stopSession(); return; }
+        micBtn.disabled = true;
+        statusText.textContent = 'Connecting…';
+
+        try {
+            player = new SyncedAudioPlayer({
+                basePath: 'static/js',
+                sampleRate: 24000,
+                pcmOutput: window.__pcmOutput || false,
+                echoCancellation: echoCancellationToggle.checked,
+                onEncodedAudio: (data) => {
+                    if (isRunning && ws && ws.readyState === WebSocket.OPEN) ws.send(data);
+                },
+                onText: handleText,
+                onEvent: (_, msg) => handleMessage(msg),
+                onError: (err) => console.error('Player error:', err),
+            });
+            await player.start();
+
+            const analyser = player.audioProcessor && player.audioProcessor.outputAnalyser;
+            if (analyser) { analyserRef = analyser; rafId = requestAnimationFrame(animLoop); }
+
+            const bp = window.location.pathname.replace(/\/$/, '');
+            const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${wsProto}//${window.location.host}${bp}/ws/cinechat`);
+
+            ws.onopen = () => {
+                isRunning = true;
+                transcriptArea.innerHTML = '';
+                turnBubbles = {}; userBubble = null; hadAgentBubble = false; _turnSeq = 0;
+                ws.send(JSON.stringify({ type: 'start', language: selectedLang }));
+                micBtn.disabled = false;
+                micBtn.classList.add('active');
+                statusText.textContent = 'Listening…';
+            };
+            ws.onmessage = (ev) => player.handleMessage(ev.data);
+            ws.onclose = () => stopSession();
+            ws.onerror = () => stopSession();
+        } catch (err) {
+            console.error('Start failed:', err);
+            micBtn.disabled = false;
+            statusText.textContent = 'Failed — tap to retry';
+        }
+    }
+
+    function stopSession() {
+        isRunning = false;
+        micBtn.classList.remove('active');
+        micBtn.disabled = false;
+        statusText.textContent = 'Tap to start';
+        orb.classList.remove('speaking');
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+        analyserRef = null;
+        bars.forEach(b => b.style.height = '3px');
+        if (ws) { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'stop' })); ws.close(); ws = null; }
+        if (player) { player.stop(); player = null; }
+        turnBubbles = {}; userBubble = null; hadAgentBubble = false; _turnSeq = 0;
+    }
+
+    micBtn.addEventListener('click', toggleSession);
+
+    // ── Message routing ──
+    function handleMessage(data) {
+        if (data.type === 'showtimes') {
+            renderFilters(data.filters || null, data.movies ? data.movies.length : 0);
+            renderMovies(data.movies);
+        } else if (data.type === 'location_updated') {
+            onLocationUpdated(data);
+        }
+    }
+
+    function onLocationUpdated(data) {
+        // Called both when user sets via UI (echo from on_config) and when LLM calls set_location
+        if (data.label && locationInput.value !== data.label) {
+            locationInput.value = data.label;
+            pendingLocation = { lat: data.latitude, lng: data.longitude, formatted_address: data.label };
+        }
+        const wm = data.walk_minutes;
+        const km = data.range_km ? data.range_km.toFixed(1) : '?';
+        const walkStr = wm ? `${wm} min walk (${km} km)` : `${km} km radius`;
+        setLocationStatus(`📍 ${data.label || `${data.latitude?.toFixed(4)}, ${data.longitude?.toFixed(4)}`} · ${walkStr}`, 'ok');
+        // Sync the walk selector if the value matches a preset
+        if (wm) {
+            const opt = [...walkSelect.options].find(o => o.value === String(wm));
+            if (opt) walkSelect.value = String(wm);
+        }
+    }
+
+    // ── Transcript ──
+    function getBubble(turnIdx, isUser) {
+        // Normalise null/undefined turnIdx to a unique string key
+        const key = turnIdx != null ? String(turnIdx) : `seq_${_turnSeq}`;
+
+        if (isUser) {
+            if (userBubble && !hadAgentBubble) return userBubble;
+            hadAgentBubble = false;
+            _turnSeq++;
+            userBubble = document.createElement('div');
+            userBubble.className = 'msg user';
+            userBubble.innerHTML = '<div class="label">You</div><div class="text"></div>';
+            transcriptArea.appendChild(userBubble);
+            transcriptArea.scrollTop = transcriptArea.scrollHeight;
+            return userBubble;
+        }
+
+        if (!turnBubbles[key]) {
+            hadAgentBubble = true;
+            if (turnIdx == null) _turnSeq++;
+            const b = document.createElement('div');
+            b.className = 'msg agent';
+            b.innerHTML = '<div class="label">CineChat</div><div class="text"></div>';
+            transcriptArea.appendChild(b);
+            turnBubbles[key] = b;
+            while (transcriptArea.children.length > 60) {
+                const removed = transcriptArea.removeChild(transcriptArea.firstChild);
+                for (const k in turnBubbles) { if (turnBubbles[k] === removed) delete turnBubbles[k]; }
+                if (userBubble === removed) userBubble = null;
+            }
+        }
+        return turnBubbles[key];
+    }
+
+    function handleText({ text, turnIdx, isUser }) {
+        if (!text) return;
+        const bubble = getBubble(turnIdx, isUser);
+        const el = bubble.querySelector('.text');
+        if (el) el.textContent += text + ' ';
+        transcriptArea.scrollTop = transcriptArea.scrollHeight;
+    }
+
+    // ── Filter bar ──
+    function renderFilters(filters, count) {
+        filterBar.innerHTML = '';
+
+        const hasFilters = filters && (
+            filters.after_time || filters.before_time ||
+            filters.arrondissement || filters.zipcode ||
+            (filters.genres && filters.genres.length)
+        );
+
+        if (!hasFilters) {
+            filterBar.style.display = 'none';
+            return;
+        }
+
+        filterBar.style.display = 'flex';
+
+        const label = document.createElement('span');
+        label.className = 'filter-label filter-bar-label';
+        label.textContent = 'Filters:';
+        filterBar.appendChild(label);
+
+        if (filters.after_time || filters.before_time) {
+            const chip = document.createElement('span');
+            chip.className = 'filter-chip time';
+            let label = '';
+            if (filters.after_time && filters.before_time) {
+                label = `${filters.after_time} – ${filters.before_time}`;
+            } else if (filters.after_time) {
+                label = `after ${filters.after_time}`;
+            } else {
+                label = `before ${filters.before_time}`;
+            }
+            chip.innerHTML = `<span class="chip-icon">🕐</span>${label}`;
+            filterBar.appendChild(chip);
+        }
+
+        if (filters.arrondissement) {
+            const chip = document.createElement('span');
+            chip.className = 'filter-chip place';
+            chip.innerHTML = `<span class="chip-icon">📍</span>${filters.arrondissement}e arr.`;
+            filterBar.appendChild(chip);
+        } else if (filters.zipcode) {
+            const chip = document.createElement('span');
+            chip.className = 'filter-chip place';
+            chip.innerHTML = `<span class="chip-icon">📍</span>${filters.zipcode}`;
+            filterBar.appendChild(chip);
+        }
+
+        if (filters.genres && filters.genres.length) {
+            for (const g of filters.genres) {
+                const chip = document.createElement('span');
+                chip.className = 'filter-chip genre';
+                chip.innerHTML = `<span class="chip-icon">🎭</span>${g}`;
+                filterBar.appendChild(chip);
+            }
+        }
+
+        const countEl = document.createElement('span');
+        countEl.className = 'filter-count';
+        countEl.innerHTML = `<strong>${count}</strong> result${count !== 1 ? 's' : ''}`;
+        filterBar.appendChild(countEl);
+    }
+
+    // ── Movie cards ──
+    function renderMovies(movies) {
+        if (!movies || !movies.length) {
+            moviesContent.innerHTML = '<div class="movies-empty"><span class="icon">🎭</span>No screenings found nearby.<br>Try asking for a wider radius or different time.</div>';
+            return;
+        }
+        moviesContent.innerHTML = '';
+        const grid = document.createElement('div');
+        grid.className = 'movies-grid';
+
+        for (const m of movies) {
+            const card = document.createElement('div');
+            card.className = 'movie-card';
+
+            let ratingHtml = '';
+            if (m.rating) {
+                ratingHtml = `<div class="movie-rating"><span class="star">★</span><span class="rating-val">${m.rating.toFixed(1)}</span><span class="rating-source">/ 10</span></div>`;
+            }
+
+            let genresHtml = '';
+            if (m.genres) {
+                genresHtml = '<div class="movie-genres">' +
+                    m.genres.split(',').map(g => `<span class="genre-tag">${g.trim()}</span>`).join('') +
+                    '</div>';
+            }
+
+            let screeningsHtml = '';
+            if (m.screenings && m.screenings.length) {
+                const shown = m.screenings.slice(0, 3);
+                const items = shown.map(s => {
+                    const voBadge = s.version === 'VO'
+                        ? '<span class="screening-badge badge-vo">VO</span>'
+                        : '<span class="screening-badge badge-vf">VF</span>';
+                    const d3Badge = s.is_3d ? '<span class="screening-badge badge-3d">3D</span>' : '';
+                    return `<div class="screening-item"><span class="screening-theater">${s.theater}</span>${voBadge}${d3Badge}<br>${s.time}${s.price ? ' · ' + s.price + '€' : ''}</div>`;
+                }).join('');
+                const more = m.nb_screenings > 3
+                    ? `<div class="more-screenings">+${m.nb_screenings - 3} more screenings</div>`
+                    : '';
+                screeningsHtml = `<div class="movie-screenings"><div class="screenings-label">Screenings nearby</div>${items}${more}</div>`;
+            }
+
+            const duration = m.duration_min ? `${m.duration_min} min · ` : '';
+            const director = m.director ? `Dir. ${m.director}` : '';
+
+            card.innerHTML = `
+                <div class="movie-card-body">
+                    <div class="movie-title">${m.title}</div>
+                    <div class="movie-meta">${duration}${director}</div>
+                    ${genresHtml}
+                    ${ratingHtml}
+                    ${screeningsHtml}
+                </div>`;
+
+            grid.appendChild(card);
+        }
+        moviesContent.appendChild(grid);
+    }
+    </script>
+</body>
+</html>

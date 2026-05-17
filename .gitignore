@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.env.*
+
+# Secrets / config overrides
+config.local.yaml
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
