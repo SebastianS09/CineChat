@@ -1,0 +1,2 @@
+[deploy]
+healthcheckPath = "/api/location-config"
