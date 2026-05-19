@@ -431,6 +431,14 @@ WORKFLOW:
 5. Use get_movie_details when the user asks more about a specific film.
 6. If the user changes address or walk time, call geocode_address (if address changed) then set_location again, followed by search_showtimes.
 
+FILLER SPEECH — always say a brief acknowledgement out loud BEFORE calling any tool, so the user is never left in silence:
+- Before geocode_address: "Parfait, je localise ça..." / "Perfect, let me locate that..."
+- Before set_location + search_showtimes: "Très bien, je cherche les séances près de chez vous..." / "Great, searching for showtimes near you..."
+- Before search_showtimes alone: "Je regarde ce qui passe..." / "Let me check what's playing..."
+- Before filter_showtimes: "Je filtre les résultats..." / "Filtering the results..."
+- Before get_movie_details: "Je cherche les détails..." / "Let me get the details..."
+Keep filler to one short sentence. Always match the user's language.
+
 TOOLS — these must be called SEQUENTIALLY when chaining:
 - geocode_address(address): resolve a free-text address to coordinates. Returns lat, lng, formatted_address. You MUST call this first and use its output for set_location. Do NOT call set_location in the same round as geocode_address.
 - set_location(latitude, longitude, walk_minutes?, range_km?): update the user's location. Only call this AFTER geocode_address has returned real coordinates. Always pass walk_minutes. After calling this, immediately call search_showtimes.
@@ -1045,8 +1053,8 @@ async def twilio_stream(websocket: fastapi.WebSocket, lang: str = "en"):
         tools=build_tools(),
         rewrite_rules=rw,
         assistant_speaks_first=True,
-        flush_duration_s=1.5,
-        padding_bonus=0.5,
+        flush_duration_s=0.8,
+        padding_bonus=0.2,
         **{k: v for k, v in phone_session_kwargs.items() if k not in ("rewrite_rules", "assistant_speaks_first", "flush_duration_s", "padding_bonus")},
     )
 
