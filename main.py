@@ -999,7 +999,7 @@ async def twilio_voice_webhook(request: fastapi.Request) -> fastapi.Response:
     """Twilio calls this when a call arrives. We return TwiML that opens a Media Stream."""
     host = request.headers.get("host", request.url.hostname)
     scheme = "wss" if request.url.scheme == "https" else "ws"
-    stream_url = f"{scheme}://{host}/twilio/stream"
+    stream_url = f"{scheme}://{host}/twilio/stream/fr"
     twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Connect>
