@@ -202,15 +202,13 @@ def format_showtime_for_llm(result: dict, lang: str) -> dict:
     screenings = []
     for theater in theaters:
         for st in theater.get("showtimes", []):
-            dt = datetime.fromisoformat(st["showtime"].replace("Z", "+00:00"))
-            offset_h = 2 if 3 < dt.month < 11 else 1
-            local_dt = dt + timedelta(hours=offset_h)
+            dt = datetime.fromisoformat(st["showtime"].replace("Z", ""))
             screenings.append(
                 {
                     "theater": theater["name"],
                     "address": theater["address"],
                     "distance_m": theater["distance"],
-                    "time": local_dt.strftime("%a %d %b %H:%M"),
+                    "time": dt.strftime("%a %d %b %H:%M"),
                     "version": "VO" if st["vo"] else "VF",
                     "audio_lang": st.get("audio_lang", ""),
                     "subtitles": st.get("sub1_lang", ""),
@@ -382,11 +380,8 @@ def filter_results(results: list[dict], filters: "ActiveFilters") -> list[dict]:
             if after_min is not None or before_min is not None:
                 kept_showtimes = []
                 for st in theater.get("showtimes", []):
-                    dt = datetime.fromisoformat(st["showtime"].replace("Z", "+00:00"))
-                    # Paris local time: CEST (UTC+2) Apr–Oct, CET (UTC+1) otherwise
-                    offset_h = 2 if 3 < dt.month < 11 else 1
-                    local_dt = dt + timedelta(hours=offset_h)
-                    t_min = local_dt.hour * 60 + local_dt.minute
+                    dt = datetime.fromisoformat(st["showtime"].replace("Z", ""))
+                    t_min = dt.hour * 60 + dt.minute
                     if after_min is not None and t_min < after_min:
                         continue
                     if before_min is not None and t_min > before_min:
@@ -800,22 +795,21 @@ async def dispatch_tool_call(
         if args.get("range_km"):
             state.range_km = max(1, min(50, int(range_km)))
 
-        paris_tz = timezone(timedelta(hours=2))  # CEST (UTC+2); CET is UTC+1 Oct–Mar
-        now = datetime.now(paris_tz)
-        now_utc = datetime.now(timezone.utc)
+        # API timestamps are Paris local time (naive) despite the Z suffix
+        now = datetime.now()
         if date_window == "tonight":
-            start = now_utc
-            end = now.replace(hour=23, minute=59, second=59, microsecond=0).astimezone(timezone.utc)
+            start = now
+            end = now.replace(hour=23, minute=59, second=59, microsecond=0)
         elif date_window == "tomorrow":
-            tomorrow_paris = now + timedelta(days=1)
-            start = tomorrow_paris.replace(hour=9, minute=0, second=0, microsecond=0).astimezone(timezone.utc)
-            end = tomorrow_paris.replace(hour=23, minute=59, second=59, microsecond=0).astimezone(timezone.utc)
+            tomorrow = now + timedelta(days=1)
+            start = tomorrow.replace(hour=9, minute=0, second=0, microsecond=0)
+            end = tomorrow.replace(hour=23, minute=59, second=59, microsecond=0)
         elif date_window == "this_week":
-            start = now_utc
-            end = now_utc + timedelta(days=7)
+            start = now
+            end = now + timedelta(days=7)
         else:  # today
-            start = now_utc
-            end = now.replace(hour=23, minute=59, second=59, microsecond=0).astimezone(timezone.utc)
+            start = now
+            end = now.replace(hour=23, minute=59, second=59, microsecond=0)
 
         try:
             results = await fetch_showtimes(state.latitude, state.longitude, state.range_km, start, end)
