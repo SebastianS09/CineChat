@@ -800,20 +800,22 @@ async def dispatch_tool_call(
         if args.get("range_km"):
             state.range_km = max(1, min(50, int(range_km)))
 
-        now = datetime.now(timezone.utc)
+        paris_tz = timezone(timedelta(hours=2))  # CEST (UTC+2); CET is UTC+1 Oct–Mar
+        now = datetime.now(paris_tz)
+        now_utc = datetime.now(timezone.utc)
         if date_window == "tonight":
-            start = now.replace(hour=17, minute=0, second=0, microsecond=0)
-            end = now.replace(hour=23, minute=59, second=59, microsecond=0)
+            start = now_utc
+            end = now.replace(hour=23, minute=59, second=59, microsecond=0).astimezone(timezone.utc)
         elif date_window == "tomorrow":
-            tomorrow = now + timedelta(days=1)
-            start = tomorrow.replace(hour=9, minute=0, second=0, microsecond=0)
-            end = tomorrow.replace(hour=23, minute=59, second=59, microsecond=0)
+            tomorrow_paris = now + timedelta(days=1)
+            start = tomorrow_paris.replace(hour=9, minute=0, second=0, microsecond=0).astimezone(timezone.utc)
+            end = tomorrow_paris.replace(hour=23, minute=59, second=59, microsecond=0).astimezone(timezone.utc)
         elif date_window == "this_week":
-            start = now
-            end = now + timedelta(days=7)
+            start = now_utc
+            end = now_utc + timedelta(days=7)
         else:  # today
-            start = now
-            end = now.replace(hour=23, minute=59, second=59, microsecond=0)
+            start = now_utc
+            end = now.replace(hour=23, minute=59, second=59, microsecond=0).astimezone(timezone.utc)
 
         try:
             results = await fetch_showtimes(state.latitude, state.longitude, state.range_km, start, end)
