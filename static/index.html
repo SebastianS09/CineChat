@@ -778,6 +778,9 @@
         btn.classList.add('selected');
         selectedLang = btn.dataset.lang;
         if (!isRunning) statusText.textContent = 'Tap to start';
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'config', set_language: selectedLang }));
+        }
     });
 
     // ── State ──

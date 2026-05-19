@@ -938,6 +938,11 @@ async def websocket_cinechat(websocket: fastapi.WebSocket):
                     state.location_label, state.latitude, state.longitude, state.range_km)
 
     async def on_config(msg: dict) -> gradbot.SessionConfig:
+        if "set_language" in msg:
+            lang = msg["set_language"]
+            if lang in LANG_CONFIG:
+                state.lang = lang
+                logger.info("[CONFIG] language switched to %s", lang)
         if "set_location" in msg:
             _apply_location(msg["set_location"])
             await websocket.send_json({
