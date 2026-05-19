@@ -999,12 +999,11 @@ async def websocket_phone(websocket: fastapi.WebSocket):
     )
 
 
-@app.post("/twilio/voice")
+@app.api_route("/twilio/voice", methods=["GET", "POST"])
 async def twilio_voice_webhook(request: fastapi.Request) -> fastapi.Response:
     """Twilio calls this when a call arrives. We return TwiML that opens a Media Stream."""
-    host = request.headers.get("host", request.url.hostname)
-    scheme = "wss" if request.url.scheme == "https" else "ws"
-    stream_url = f"{scheme}://{host}/twilio/stream/fr"
+    host = request.headers.get("x-forwarded-host") or request.headers.get("host") or request.url.hostname
+    stream_url = f"wss://{host}/twilio/stream/fr"
     twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Connect>
