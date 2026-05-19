@@ -529,8 +529,8 @@
             <div class="ctrl-section">
                 <div class="ctrl-label">Language</div>
                 <div class="lang-selector" id="langSelector">
-                    <button class="lang-btn selected" data-lang="en">EN</button>
-                    <button class="lang-btn" data-lang="fr">FR</button>
+                    <button class="lang-btn" data-lang="en">EN</button>
+                    <button class="lang-btn selected" data-lang="fr">FR</button>
                     <button class="lang-btn" data-lang="de">DE</button>
                     <button class="lang-btn" data-lang="es">ES</button>
                     <button class="lang-btn" data-lang="pt">PT</button>
@@ -770,7 +770,7 @@
     locationSetBtn.addEventListener('click', handleSetLocation);
 
     // ── Language ──
-    let selectedLang = 'en';
+    let selectedLang = 'fr';
     document.getElementById('langSelector').addEventListener('click', (e) => {
         const btn = e.target.closest('.lang-btn');
         if (!btn) return;
